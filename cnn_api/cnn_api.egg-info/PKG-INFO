@@ -1,0 +1,40 @@
+Metadata-Version: 2.4
+Name: cnn-api
+Version: 0.1.2
+Summary: Assignment 2: CNN + FastAPI + Docker (Intel macOS friendly, setuptools discovery fixed)
+Requires-Python: <3.13,>=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi
+Requires-Dist: uvicorn[standard]
+Requires-Dist: torch==2.2.2
+Requires-Dist: torchvision==0.17.2
+Requires-Dist: pillow
+Requires-Dist: requests
+Requires-Dist: numpy<2
+Requires-Dist: python-multipart>=0.0.20
+
+
+# CNN API (Assignment 2)
+
+## Train
+```bash
+python -m venv .venv && source .venv/bin/activate   # on macOS/Linux
+pip install -r requirements.txt
+python train_cifar10.py --epochs 5
+```
+
+## Run API
+```bash
+uvicorn app.main:app --reload --port 8000
+```
+
+## Predict
+```bash
+curl -F "file=@sample.jpg" http://localhost:8000/predict
+```
+
+## Docker
+```bash
+docker build -t cnn-api .
+docker run --rm -p 8000:8000 cnn-api
+```

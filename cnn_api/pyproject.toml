@@ -1,0 +1,30 @@
+[project]
+name = "cnn-api"
+version = "0.1.2"
+description = "Assignment 2: CNN + FastAPI + Docker (Intel macOS friendly, setuptools discovery fixed)"
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "torch==2.2.2",
+    "torchvision==0.17.2",
+    "pillow",
+    "requests",
+    "numpy<2",
+    "python-multipart>=0.0.20",
+]
+
+[dependency-groups]
+dev = ["pytest", "ruff", "black"]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+package-dir = {"" = "."}
+
+[tool.setuptools.packages.find]
+include = ["helper_lib", "helper_lib.*", "app", "app.*"]
+exclude = ["tests*", "scripts*", "weights*", "assets*", "docs*"]
