@@ -1,103 +1,80 @@
-# Assignment 2 — Part 3: CNN Theory (with Derivations)
+# Assignment 2 — Part 3: CNN Theory (Derivations)
 
-This section shows the formula I used, the step-by-step substitutions, and the final answers.
+This section shows the formula used, the step-by-step substitutions, and the final answers.
 
 ---
 
 ## General Output-Size Formula (per spatial dimension)
 
-For a 2D convolution/pooling with input height/width \(H\), kernel \(K\), stride \(S\), and padding \(P\):
-\[
-H_{\text{out}}=\Big\lfloor \frac{H + 2P - K}{S} \Big\rfloor + 1,
-\quad
-W_{\text{out}} \text{ similarly.}
-\]
+For a 2D convolution/pooling with input size H (or W), kernel K, stride S, padding P:
 
-- **Channels:** After a *convolution*, the output channel count equals the **number of filters**.
-- **Pooling:** Pooling **does not change** the number of channels.
+    out = floor((H + 2P - K) / S) + 1
 
-> Note: The floor \(\lfloor\cdot\rfloor\) matters when \((H + 2P - K)\) is not divisible by \(S\).  
-> For “**same**” padding with \(S=1\), the spatial size is preserved.
+Notes:
+- After a **convolution**, the output **channels** = number of **filters**.
+- **Pooling** does not change the number of channels.
 
 ---
 
 ## Q1
-**Given:** Input \(32 \times 32 \times 3\); conv with **8** filters, \(K=5\), \(S=1\), \(P=0\).
+**Given:** input 32×32×3; conv with 8 filters, K=5, S=1, P=0  
+**Compute (per spatial dim):**
 
-**Derivation:**
-\[
-H_{\text{out}}=W_{\text{out}}
-= \Big\lfloor \frac{32 + 0 - 5}{1} \Big\rfloor + 1
-= \lfloor 27 \rfloor + 1
-= 28.
-\]
+    out = floor((32 + 0 - 5) / 1) + 1
+        = floor(27) + 1
+        = 28
 
-**Answer:** \(\boxed{28 \times 28 \times 8}\).  
-(*8 comes from the number of filters.*)
+**Answer:** 28×28×8
 
 ---
 
 ## Q2
-**Change:** padding \(\to\) “same”, still \(S=1\).
-
-**Reasoning:** With “same” and stride 1, padding is chosen to keep spatial size.
-
-**Answer:** \(\boxed{32 \times 32 \times 8}\).
+**Change:** padding → "same", still S=1  
+**Reasoning:** "same" with stride 1 preserves spatial size.  
+**Answer:** 32×32×8
 
 ---
 
 ## Q3
-**Given:** Input \(64 \times 64\); conv \(K=3\), \(S=2\), \(P=0\). (Spatial size only.)
+**Given:** input 64×64; conv K=3, S=2, P=0 (spatial only)  
+**Compute:**
 
-**Derivation:**
-\[
-H_{\text{out}}=W_{\text{out}}
-= \Big\lfloor \frac{64 - 3}{2} \Big\rfloor + 1
-= \lfloor 30.5 \rfloor + 1
-= 31.
-\]
+    out = floor((64 - 3) / 2) + 1
+        = floor(61 / 2) + 1
+        = floor(30.5) + 1
+        = 31
 
-**Answer:** \(\boxed{31 \times 31}\).
+**Answer:** 31×31
 
 ---
 
 ## Q4
-**Given:** MaxPool \(2 \times 2\), \(S=2\) on a \(16 \times 16\) feature map.
+**Given:** max-pool K=2, S=2 on 16×16  
+**Compute:**
 
-**Derivation:**
-\[
-H_{\text{out}}=W_{\text{out}}
-= \Big\lfloor \frac{16 - 2}{2} \Big\rfloor + 1
-= \lfloor 7 \rfloor + 1
-= 8.
-\]
+    out = floor((16 - 2) / 2) + 1
+        = floor(7) + 1
+        = 8
 
-**Answer:** \(\boxed{8 \times 8}\).  
-(*Pooling does not change channels.*)
+**Answer:** 8×8  (channels unchanged)
 
 ---
 
 ## Q5
-**Given:** Two successive conv layers on a \(128 \times 128\) input; each with \(K=3\), \(S=1\), padding = “same”.
-
-**Reasoning:** Each “same” conv with stride 1 preserves spatial size; two in a row still preserve it.
-
-**Answer:** \(\boxed{128 \times 128}\).  
-(*Channel count depends on the number of filters in those layers; not specified here.*)
+**Given:** two successive convs on 128×128; each K=3, S=1, padding="same"  
+**Reasoning:** each layer preserves spatial size with S=1 and "same" padding.  
+**Answer:** 128×128  (channel count depends on #filters, not specified)
 
 ---
 
 ## Q6
-**Question:** What happens if we remove `model.train()` before the training loop?
+**Question:** What if `model.train()` is removed before the training loop?
 
-**Role of `model.train()`:** Switches the model to **training mode**:
-- **Dropout**: Enabled in train mode (randomly zeroes activations), disabled in eval mode.
-- **BatchNorm**: Uses **mini-batch** statistics and **updates** running stats in train mode; in eval mode it uses frozen running means/vars and *does not* update them.
-
-**Consequence of removing it:**
-- If the model was previously put in `eval()` (e.g., after validation), it may **stay in eval mode**: Dropout won’t drop, BatchNorm won’t update running stats → mismatch between train/inference behaviors, degraded/unstable training.
-- Even if `eval()` wasn’t called, being explicit with `model.train()` is good hygiene to avoid state leakage.
-
-> Clarification: `model.train()` does **not** directly control gradient computation (that’s governed by `requires_grad` and contexts like `torch.no_grad()`). It toggles module behaviors (Dropout/BatchNorm).
+- `model.train()` switches modules to **training mode**:
+  - **Dropout**: enabled in train mode; disabled in eval mode.
+  - **BatchNorm**: uses mini-batch stats and **updates** running mean/var in train; eval uses **frozen** running stats and does not update.
+- If you omit it (especially after having called `eval()` during validation), the model can remain in **eval mode**:
+  - Dropout won’t drop; BatchNorm won’t update → mismatch between training and inference behavior → degraded/unstable training.
+- Note: `model.train()` does **not** control gradient computation (that’s via `requires_grad` / `torch.no_grad()`); it toggles module behavior.
 
 ---
