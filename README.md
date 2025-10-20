@@ -10,7 +10,7 @@ Three parts:
 
 ## Quick start
 
-### A) Docker（不装 Python 的最省心方式）
+### A) Docker
 
 ```bash
 git clone <YOUR_REPO_URL>
